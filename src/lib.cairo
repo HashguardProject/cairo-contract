@@ -8,7 +8,7 @@ pub trait IHelloStarknet<TContractState> {
 mod HelloStarknet {
     #[storage]
     struct Storage {
-        balance: felt252, 
+        balance: felt252,
     }
 
     #[abi(embed_v0)]
@@ -23,3 +23,5 @@ mod HelloStarknet {
         }
     }
 }
+
+mod complexe_storage;
