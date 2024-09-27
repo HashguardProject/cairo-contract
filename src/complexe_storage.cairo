@@ -1,16 +1,20 @@
 use core::starknet::ContractAddress;
 
 #[starknet::interface]
-trait IComplexStorage<TContractState> {
-    fn incr_file_number(ref self: TContractState, amount: u128);
-    fn get_file_number(self: @TContractState, address: ContractAddress) -> u128;
+pub trait IComplexStorage<TContractState> {
+    fn get_file_number(self: @TContractState) -> u128;
     fn store_file(ref self: TContractState, cid: u128, key: u128, name: felt252);
     fn replace_file(ref self: TContractState, number: u128, cid: u128, key: u128, name: felt252);
     fn get_file(ref self: TContractState, number: u128) -> (u128, u128, felt252);
 }
 
+
+pub trait IComplexStorageInternal<TContractState> {
+    fn incr_file_number(ref self: TContractState, amount: u128);
+}
+
 #[starknet::contract]
-mod complex_storage {
+mod ComplexStorage {
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
@@ -26,13 +30,9 @@ mod complex_storage {
 
     #[abi(embed_v0)]
     impl ComplexStorage of super::IComplexStorage<ContractState> {
-        fn incr_file_number(ref self: ContractState, amount: u128) {
+        fn get_file_number(self: @ContractState) -> u128 {
             let caller = get_caller_address();
-            self.file_number.entry(caller).write(amount);
-        }
-
-        fn get_file_number(self: @ContractState, address: ContractAddress) -> u128 {
-            self.file_number.entry(address).read()
+            self.file_number.entry(caller).read()
         }
 
         fn store_file(ref self: ContractState, cid: u128, key: u128, name: felt252) {
@@ -63,6 +63,14 @@ mod complex_storage {
             let key = self.file_key.entry(caller).entry(number).read();
             let name = self.file_name.entry(caller).entry(number).read();
             (cid, key, name)
+        }
+    }
+
+    #[generate_trait]
+    impl InternalFunctions of IComplexStorageInternal {
+        fn incr_file_number(ref self: ContractState, amount: u128) {
+            let caller = get_caller_address();
+            self.file_number.entry(caller).write(amount);
         }
     }
 }
