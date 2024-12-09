@@ -100,6 +100,20 @@ mod BackupTemplate {
             self.owner.read()
         }
 
+        fn get_backup_cooldown(self: @ContractState) -> u64 {
+            self.backup_cooldown.read()
+        }
+
+        fn get_max_backups(self: @ContractState) -> u64 {
+            self.max_backups.read()
+        }
+
+        fn set_new_owner(ref self: ContractState, new_owner: ContractAddress) {
+            let caller = starknet::get_caller_address();
+            assert(caller == self.owner.read(), Errors::UNAUTHORIZED);
+            self.owner.write(new_owner);
+        }
+
         fn set_backup_cooldown(ref self: ContractState, new_cooldown: u64) {
             let caller = starknet::get_caller_address();
             assert(caller == self.owner.read(), Errors::UNAUTHORIZED);
@@ -122,4 +136,7 @@ trait IBackupTemplate<TContractState> {
     fn get_owner(self: @TContractState) -> ContractAddress;
     fn set_backup_cooldown(ref self: TContractState, new_cooldown: u64);
     fn set_max_backups(ref self: TContractState, new_max: u64);
+    fn set_new_owner(ref self: TContractState, new_owner: ContractAddress);
+    fn get_backup_cooldown(self: @TContractState) -> u64;
+    fn get_max_backups(self: @TContractState) -> u64;
 }
