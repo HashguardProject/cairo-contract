@@ -1,5 +1,6 @@
 use core::starknet::ContractAddress;
 
+// Old contract 
 #[starknet::interface]
 pub trait IComplexStorage<TContractState> {
     fn get_file_number(self: @TContractState) -> u128;
