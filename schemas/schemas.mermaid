@@ -1,0 +1,73 @@
+graph TD
+    A[User] -->|Deploys| B[BackupFactory Contract]
+    B -->|Creates| C[BackupTemplate Contract]
+    C -->|Stores| D[Backup Data]
+    
+    subgraph Factory Contract
+        B -->|Tracks| E[User Contracts]
+        B -->|Validates| F[Factory Deployments]
+    end
+    
+    subgraph Backup Contract
+        C -->|Manages| G[Backup History]
+        C -->|Enforces| H[Cooldown Period]
+        C -->|Limits| I[Max Backups]
+    end
+    
+    subgraph Storage
+        D -->|Contains| J[Backup file's CID]
+        D -->|Records| K[Timestamp]
+    end
+
+-----
+
+
+sequenceDiagram
+    participant User
+    participant Factory as BackupFactory
+    participant Template as BackupTemplate
+    
+    User->>Factory: deploy_backup_contract()
+    Factory->>Template: Deploy new instance
+    Factory->>Factory: Record user's contract
+    Factory-->>User: Return contract address
+    
+    Note over User,Template: Later...
+    
+    User->>Template: create_backup(CID)
+    Template->>Template: Verify owner
+    Template->>Template: Check cooldown
+    Template->>Template: Store backup data
+    Template-->>User: Emit BackupCreated event
+
+
+----
+classDiagram
+    class BackupFactory {
+        +ClassHash backup_template
+        +Map<Address, Address> user_backup_contracts
+        +Map<Address, bool> is_deployed_by_factory
+        +deploy_backup_contract()
+        +get_user_backup_contract()
+        +is_factory_deployed()
+    }
+    
+    class BackupTemplate {
+        +Address owner
+        +Map<uint64, BackupData> backup_data
+        +uint64 last_backup_time
+        +uint64 backup_cooldown
+        +uint64 max_backups
+        +create_backup()
+        +get_backup()
+        +set_backup_cooldown()
+        +set_max_backups()
+    }
+    
+    class BackupData {
+        +felt252 backup_cid
+        +uint64 timestamp
+    }
+    
+    BackupFactory --> BackupTemplate : deploys
+    BackupTemplate --> BackupData : stores
